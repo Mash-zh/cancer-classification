@@ -1,8 +1,10 @@
+import torch
 import torchvision.models as models
 import torch.nn as nn
 
-class CustomNet:
+class CustomNet(nn.Module):
     def __init__(self, net_name, pretrained=True, num_classes=2):
+        super(CustomNet, self).__init__()
         self.net = net_name
         self.num_classes = num_classes
         self.pretrained = pretrained

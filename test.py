@@ -9,9 +9,12 @@ import pandas as pd
 from net import CustomNet
 import glob
 
-def test(model_path, data_path, batch_size):
+def test(net_name, model_path, data_path, batch_size):
+    model = CustomNet(net_name)
+    model = model.__net__()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = torch.load(model_path)
+    checkpoint  = torch.load(model_path)
+    model.load_state_dict(checkpoint)
     model.eval()
     model.to(device)
     # 3. 数据预处理
@@ -28,15 +31,16 @@ def test(model_path, data_path, batch_size):
     # 5. 定义损失函数
     criterion = nn.CrossEntropyLoss()
 
-    total_loss = 0
+    total_correct = 0
     with torch.no_grad():
         for images , labels in test_loader:
             images, labels = images.to(device), labels.to(device)
 
             outputs = model(images)
-            loss = criterion(outputs, labels)
-            total_loss += loss.item()
-
+            outputs = torch.argmax(outputs, dim=1)
+            total_correct += sum(outputs == labels)
+    accuracy = total_correct.item() / len(test_dataset)
+    print(accuracy)
 
 if __name__ == '__main__':
     # epochs = 100
@@ -46,6 +50,7 @@ if __name__ == '__main__':
     # for net_name in net_list:
     #     loss_csv = net_name+'_loss.csv'
     #     train(epochs, net_name, loss_csv, data_path)
-    model_path = 'resnet18_model_weights_0.008930049811349964.pth'
-    data_path = 'test'
-    test(model_path, data_path, 32)
+    model_path = './resnet18_model_weights_0.4848885169744492.pth'
+    data_path = 'train'
+    net_name = 'resnet18'
+    test(net_name=net_name, model_path=model_path, data_path=data_path, batch_size=32)
