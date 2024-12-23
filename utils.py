@@ -6,6 +6,7 @@ import torch
 import torchvision.datasets as dset
 import numpy as np
 import preproc
+from dataset import CustomDataset
 
 
 def get_data(dataset, data_path, cutout_length, validation):
@@ -27,17 +28,25 @@ def get_data(dataset, data_path, cutout_length, validation):
         raise ValueError(dataset)
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
-    trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
+    if dataset == 'cancer':
+        trn_data = CustomDataset(data_path, transform=trn_transform)
+        input_channels = 3
+        input_size = 32
+        ret = [input_size, input_channels, n_classes, trn_data]
+        if validation:  # append validation data
+            pass
+    else:
+        trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
 
-    # assuming shape is NHW or NHWC
-    shape = trn_data.train_data.shape
-    input_channels = 3 if len(shape) == 4 else 1
-    assert shape[1] == shape[2], "not expected shape = {}".format(shape)
-    input_size = shape[1]
+        # assuming shape is NHW or NHWC
+        shape = trn_data.train_data.shape
+        input_channels = 3 if len(shape) == 4 else 1
+        assert shape[1] == shape[2], "not expected shape = {}".format(shape)
+        input_size = shape[1]
 
-    ret = [input_size, input_channels, n_classes, trn_data]
-    if validation: # append validation data
-        ret.append(dset_cls(root=data_path, train=False, download=True, transform=val_transform))
+        ret = [input_size, input_channels, n_classes, trn_data]
+        if validation: # append validation data
+            ret.append(dset_cls(root=data_path, train=False, download=True, transform=val_transform))
 
     return ret
 

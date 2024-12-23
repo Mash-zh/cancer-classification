@@ -12,6 +12,7 @@ class CustomNet(nn.Module):
     def __net__(self):
         if self.net == 'resnet18':
             net = models.resnet18(pretrained=self.pretrained)
+            net.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1, padding=1)
             net.fc = nn.Linear(net.fc.in_features, self.num_classes)
         elif self.net == 'resnet34':
             net = models.resnet34(pretrained=self.pretrained)

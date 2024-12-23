@@ -23,13 +23,14 @@ def train(epochs, net_name, loss_csv, data_path, save_csv, save_weight):
     transform = transforms.Compose([
         transforms.RandomHorizontalFlip(),  # 随机水平翻转
         transforms.RandomRotation(30),  # 随机旋转
-        transforms.RandomResizedCrop(224),  # 随机裁剪
+        # transforms.RandomResizedCrop(32),  # 随机裁剪
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
     # 4. 加载数据集（示例使用ImageFolder）
     train_dataset = CustomDataset(data_path, transform=transform)
+    print(train_dataset.shape())
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
     # 5. 定义损失函数和优化器
@@ -74,8 +75,8 @@ def train(epochs, net_name, loss_csv, data_path, save_csv, save_weight):
     print(net_name+"训练完成！")
 
 if __name__ == '__main__':
-    epochs = 3
-    data_path = '../Deep-Learning/cancer-classification/train_all'
+    epochs = 100
+    data_path = '../train'
     # 'resnet18' 'resnet34' 'vgg16' 'efficientnet_v2_m' 'inception3'
     save_csv = True
     save_weight = True

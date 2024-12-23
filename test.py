@@ -19,7 +19,7 @@ def test(net_name, model_path, data_path, batch_size):
     model.to(device)
     # 3. 数据预处理
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),  # ResNet输入固定224x224
+        transforms.Resize((32, 32)),  # ResNet输入固定224x224
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # for net_name in net_list:
     #     loss_csv = net_name+'_loss.csv'
     #     train(epochs, net_name, loss_csv, data_path)
-    model_path = './resnet18_model_weights_0.4848885169744492.pth'
-    data_path = 'train'
+    model_path = './resnet18_model_weights_0.15847289782047272.pth'
+    data_path = 'test'
     net_name = 'resnet18'
     test(net_name=net_name, model_path=model_path, data_path=data_path, batch_size=32)
