@@ -37,9 +37,12 @@ def main():
     torch.backends.cudnn.benchmark = True
 
     # get data with meta info
-    input_size, input_channels, n_classes, train_data = utils.get_data(
-        config.dataset, config.data_path, cutout_length=0, validation=False)
-
+    if config.validation:
+        input_size, input_channels, n_classes, train_data, valid_data = utils.get_data(
+            config.dataset, config.data_path, cutout_length=0, validation=config.validation)
+    else:
+        input_size, input_channels, n_classes, train_data = utils.get_data(
+            config.dataset, config.data_path, cutout_length=0, validation=config.validation)
     net_crit = nn.CrossEntropyLoss().to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
                                 net_crit, device_ids=config.gpus)
@@ -52,22 +55,36 @@ def main():
     alpha_optim = torch.optim.Adam(model.alphas(), config.alpha_lr, betas=(0.5, 0.999),
                                    weight_decay=config.alpha_weight_decay)
 
-    # split data to train/validation
-    n_train = len(train_data)
-    split = n_train // 2
-    indices = list(range(n_train))
-    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
-    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
-    train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=config.batch_size,
-                                               sampler=train_sampler,
-                                               num_workers=config.workers,
-                                               pin_memory=True)
-    valid_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=config.batch_size,
-                                               sampler=valid_sampler,
-                                               num_workers=config.workers,
-                                               pin_memory=True)
+    if config.dataset == 'cancer':
+        train_loader = torch.utils.data.DataLoader(train_data,
+                                                   batch_size=config.batch_size,
+                                                   num_workers=config.workers,
+                                                   pin_memory=True)
+        if config.validation:
+            valid_loader = torch.utils.data.DataLoader(valid_data,
+                                                       batch_size=config.batch_size,
+                                                       num_workers=config.workers,
+                                                       pin_memory=True)
+        else:
+            valid_loader = None
+        # print(next(iter(train_loader)))
+    else:
+        # split data to train/validation
+        n_train = len(train_data)
+        split = n_train // 2
+        indices = list(range(n_train))
+        train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
+        valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
+        train_loader = torch.utils.data.DataLoader(train_data,
+                                                   batch_size=config.batch_size,
+                                                   sampler=train_sampler,
+                                                   num_workers=config.workers,
+                                                   pin_memory=True)
+        valid_loader = torch.utils.data.DataLoader(train_data,
+                                                   batch_size=config.batch_size,
+                                                   sampler=valid_sampler,
+                                                   num_workers=config.workers,
+                                                   pin_memory=True)
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         w_optim, config.epochs, eta_min=config.w_lr_min)
     architect = Architect(model, config.w_momentum, config.w_weight_decay)

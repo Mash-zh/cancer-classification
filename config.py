@@ -62,6 +62,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--alpha_lr', type=float, default=3e-4, help='lr for alpha')
         parser.add_argument('--alpha_weight_decay', type=float, default=1e-3,
                             help='weight decay for alpha')
+        parser.add_argument('--validation', default=True, help='True / False')
 
         return parser
 
@@ -74,7 +75,6 @@ class SearchConfig(BaseConfig):
         self.path = os.path.join('searchs', self.name)
         self.plot_path = os.path.join(self.path, 'plots')
         self.gpus = parse_gpus(self.gpus)
-
 
 class AugmentConfig(BaseConfig):
     def build_parser(self):
