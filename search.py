@@ -19,7 +19,7 @@ writer = SummaryWriter(log_dir=os.path.join(config.path, "tb"))
 writer.add_text('config', config.as_markdown(), 0)
 
 logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)))
-config.print_params(logger.info)
+# config.print_params(logger.info)
 
 
 def main():
@@ -158,21 +158,21 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
 
-        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+        prec1 = utils.accuracy(logits, trn_y)
         losses.update(loss.item(), N)
-        top1.update(prec1.item(), N)
-        top5.update(prec5.item(), N)
+        top1.update(prec1[0].item(), N)
+        # top5.update(prec5.item(), N)
 
         if step % config.print_freq == 0 or step == len(train_loader)-1:
             logger.info(
                 "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
-                "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
+                "Prec@(1,5) ({top1.avg:.1%})".format(
                     epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
-                    top1=top1, top5=top5))
+                    top1=top1))
 
         writer.add_scalar('train/loss', loss.item(), cur_step)
-        writer.add_scalar('train/top1', prec1.item(), cur_step)
-        writer.add_scalar('train/top5', prec5.item(), cur_step)
+        writer.add_scalar('train/top1', prec1[0].item(), cur_step)
+        # writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
@@ -193,21 +193,21 @@ def validate(valid_loader, model, epoch, cur_step):
             logits = model(X)
             loss = model.criterion(logits, y)
 
-            prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
+            prec1 = utils.accuracy(logits, y)
             losses.update(loss.item(), N)
-            top1.update(prec1.item(), N)
-            top5.update(prec5.item(), N)
+            top1.update(prec1[0].item(), N)
+            # top5.update(prec5.item(), N)
 
             if step % config.print_freq == 0 or step == len(valid_loader)-1:
                 logger.info(
                     "Valid: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
-                    "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
+                    "Prec@(1,5) ({top1.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
-                        top1=top1, top5=top5))
+                        top1=top1))
 
     writer.add_scalar('val/loss', losses.avg, cur_step)
     writer.add_scalar('val/top1', top1.avg, cur_step)
-    writer.add_scalar('val/top5', top5.avg, cur_step)
+    # writer.add_scalar('val/top5', top5.avg, cur_step)
 
     logger.info("Valid: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
