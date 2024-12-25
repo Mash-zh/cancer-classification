@@ -29,12 +29,12 @@ def get_data(dataset, data_path, cutout_length, validation):
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
     if dataset == 'cancer':
-        trn_data = CustomDataset(data_path + '/cancer/train', transform=trn_transform)
+        trn_data = CustomDataset(data_path + '/cancer/train_all', transform=trn_transform)
         input_channels = 3
         input_size = 32
         ret = [input_size, input_channels, n_classes, trn_data]
         if validation:  # append validation data
-            val_data = CustomDataset(data_path + '/cancer/valid', transform=val_transform)
+            val_data = CustomDataset(data_path + '/cancer/valid_all', transform=val_transform)
             ret.append(val_data)
     else:
         trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
