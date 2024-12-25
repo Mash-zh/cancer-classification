@@ -9,13 +9,17 @@ import pandas as pd
 from net import CustomNet
 import glob
 
-def test(net_name, model_path, data_path, batch_size):
-    model = CustomNet(net_name)
-    model = model.__net__()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    checkpoint  = torch.load(model_path)
-    model.load_state_dict(checkpoint)
+def test(net_name, model_path, data_path, batch_size, is_search_model, test):
+    if is_search_model:
+        model = torch.load(model_path)
+    else:
+        model = CustomNet(net_name)
+        model = model.__net__()
+        checkpoint  = torch.load(model_path)
+        model.load_state_dict(checkpoint)
+
     model.eval()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     # 3. 数据预处理
     transform = transforms.Compose([
@@ -35,13 +39,19 @@ def test(net_name, model_path, data_path, batch_size):
     with torch.no_grad():
         for images , labels in test_loader:
             images, labels = images.to(device), labels.to(device)
-
             outputs = model(images)
             outputs = torch.argmax(outputs, dim=1)
-            total_correct += sum(outputs == labels)
-    accuracy = total_correct.item() / len(test_dataset)
-    print(accuracy)
-
+            if test:
+                outputs = outputs.cpu().numpy()
+                df = pd.DataFrame({
+                    'Class' : outputs
+                })
+                df.to_csv('test.csv', mode='a',header=False, index=False)
+            else:
+                total_correct += sum(outputs == labels)
+                accuracy = total_correct.item() / len(test_dataset)
+                print(accuracy)
+        print('test end!!!')
 if __name__ == '__main__':
     # epochs = 100
     # data_path = 'train_all'
@@ -50,8 +60,8 @@ if __name__ == '__main__':
     # for net_name in net_list:
     #     loss_csv = net_name+'_loss.csv'
     #     train(epochs, net_name, loss_csv, data_path)
-    model_path = './resnet18_model_weights_0.15847289782047272.pth'
-    data_path = 'test'
+    model_path = 'nas_model_weights_0.005521756946109235.pth'
+    data_path = 'data/cancer/valid'
     net_name = 'resnet18'
     # model = torch.load('searchs/test/best.pth.tar')
-    test(net_name=net_name, model_path=model_path, data_path=data_path, batch_size=32)
+    test(net_name=net_name, model_path=model_path, data_path=data_path, batch_size=64, is_search_model=True, test = False)
