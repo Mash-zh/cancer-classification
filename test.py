@@ -53,4 +53,5 @@ if __name__ == '__main__':
     model_path = './resnet18_model_weights_0.15847289782047272.pth'
     data_path = 'test'
     net_name = 'resnet18'
+    # model = torch.load('searchs/test/best.pth.tar')
     test(net_name=net_name, model_path=model_path, data_path=data_path, batch_size=32)
